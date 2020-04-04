@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: ntm
+spec:
+  selector:
+    matchLabels:
+      app: ntm
+  template:
+    spec:
+      hostNetwork: true
+      containers:
+      - name: ntm
+        image: inzania/network-traffic-metrics:arm
+        securityContext:
+          privileged: true
+        env:
+        - name: NTM_FILTERS
+          value: "(src net 192.168.0.0/24 and not dst net 192.168.0.0/24) or (dst net 192.168.0.0/24 and not src net 192.168.0.0/24)"
+        ports:
+        - containerPort: 8000
+          name: metrics
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        effect: NoSchedule # tolerate scheduling on master.
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: "kubernetes.io/hostname"
+                  operator: In
+                  values: ["router"]
