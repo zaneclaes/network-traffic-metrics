@@ -85,7 +85,8 @@ Just point the Prometheus server to the metrics endpoint (i.e., `http://192.168.
 
 ### Grafana
 
-See the `grafana.json` file, which may be imported directly as a dashboard.
+* Make sure that you have connected Prometeheus as a "Data Source" in Grafana.
+* Follow the [Grafana import instructions](https://grafana.com/docs/grafana/latest/reference/export_import/#importing-a-dashboard) to import the [GrafanaLabs dashboard](https://grafana.com/grafana/dashboards/12619). You should be able to follow either import approach (download the JSON, or use GUID `12619`).
 
 ## How it works
 ---
