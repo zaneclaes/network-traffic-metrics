@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  monitor:
+    image: inzania/network-traffic-metrics:latest
+    network_mode: host
+    environment:
+      - "NTM_INTERFACE=$NTM_INTERFACE"
+      - "NTM_FILTERS=$NTM_FILTERS"
+
+  prometheus:
+    image: prom/prometheus:main
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    command: --web.enable-lifecycle  --config.file=/etc/prometheus/prometheus.yml
+    extra_hosts:
+      - "monitor:$MONITOR_IP"
+
+
+  grafana:
+    image: grafana/grafana:6.6.2
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    links:
+      - "prometheus:prometheus"
+    environment:
+      - "GF_INSTALL_PLUGINS=grafana-piechart-panel"
+
+
+volumes:
+  prometheus-data:
+  grafana-data:

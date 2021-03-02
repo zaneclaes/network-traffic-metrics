@@ -1,0 +1,9 @@
+global:
+  scrape_interval:     15s # How frequently to report
+  external_labels:
+    monitor: 'network-traffic-metrics'
+
+scrape_configs:
+  - job_name: 'network-traffic-metrics'
+    static_configs:
+      - targets: ['monitor:8000'] # The Network Traffic Metrics IP/port
