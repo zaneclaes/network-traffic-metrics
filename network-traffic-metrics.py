@@ -29,21 +29,34 @@ def re_param(name, pattern):
     return f'(?P<{name}>{pattern})'
 
 # Pre-compile regex for matching tcpdump output:
-pattern = '.*' + '.*'.join([
-    'proto ' + re_param('proto', '\w+') + ' ',
-    'length ' + re_param('length', '\d+'),
-    '\n\s*' + re_param('src', '[\w\d\.-]+') + '\.' + re_param('srcp', '[\w\d-]+') +
-    ' > ' +
-    re_param('dst', '[\w\d\.-]+') + '\.' + re_param('dstp', '[\w\d-]+'),
-]) + '.*'
-dump_matcher = re.compile(pattern)
+ipv4_pattern = '^[0-9:.]+ IP .* proto ' + re_param('proto', '\\w+') + ' \\(\\d+\\),' \
+    + ' length ' + re_param('length', '\\d+') + '\\)' \
+    + '\n\\s*' + re_param('src', '[\\w\\d.-]+') + '\\.' + re_param('srcp', '[\\w\\d-]+') \
+    + ' > ' \
+    + re_param('dst', '[\\w\\d.-]+') + '\\.' + re_param('dstp', '[\\w\\d-]+')
+ipv4_matcher = re.compile(ipv4_pattern)
+
+network_pattern = '^[0-9:.]+ ' + re_param('network_proto', '\\w+')
+network_matcher = re.compile(network_pattern)
 
 # Parse output from tcpdump and update the Prometheus counters.
 def parse_packet(line):
-    m = dump_matcher.match(line)
-    if not m:
+    network_matches = network_matcher.match(line)
+    if not network_matches:
+        # Not a real packet probably
         print('[SKIP] ' + line.replace("\n", "\t"))
-        return
+        return;
+
+    if network_matches.group('network_proto') != 'IP':
+        # Only supports ipv4 currently
+        return;
+
+    m = ipv4_matcher.match(line)
+
+    if not m:
+        # No ipv4 match
+        print('[SKIP] ' + line.replace("\n", "\t"))
+        return;
 
     labels = {
         'src': extract_domain(m.group('src')),
@@ -70,10 +83,18 @@ async def stream_packets():
     p = await asyncio.create_subprocess_exec(
         'tcpdump', '-i', opts.interface, '-v', '-l', opts.filters,
         stdout=asyncio.subprocess.PIPE)
+
+    # When tcpdump is run with -v, it outputs multiple lines per packet
+    # grab all the subsequent lines (which start with a space) and include them
+    line = ""
+    nextline = await p.stdout.readline()
     while True:
-        # When tcpdump is run with -v, it outputs two lines per packet;
-        # readuntil ensures that each "line" is actually a parse-able string of output.
-        line = await p.stdout.readuntil(b' IP ')
+        line = nextline
+        nextline = await p.stdout.readline()
+        while nextline.startswith(b" "):
+            line = line + nextline
+            nextline = await p.stdout.readline()
+
         if len(line) <= 0:
             print(f'No output from tcpdump... waiting.')
             time.sleep(1)
@@ -85,7 +106,7 @@ async def stream_packets():
 
 if __name__ == '__main__':
     # Load a map of ports to services from /etc/services:
-    matcher = re.compile('(?P<service>\w+)\s*(?P<port>\d+)/(?P<proto>\w+)')
+    matcher = re.compile('(?P<service>\\w+)\\s*(?P<port>\\d+)/(?P<proto>\\w+)')
     with open('/etc/services') as f:
         for line in f.readlines():
             match = matcher.match(line)
