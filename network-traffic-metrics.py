@@ -121,6 +121,8 @@ if __name__ == '__main__':
         help='The network interface to monitor.')
     parser.add_argument('--port', '-p', default=int(os.getenv('NTM_PORT', 8000)),
         help='The Prometheus metrics port.')
+    parser.add_argument('--bind_ip', '-b', default=os.getenv('NTM_BIND', '0.0.0.0'),
+        help='The IP to bind to where metrics will be served over HTTP to Prometheus scrape.')
     parser.add_argument('--metric_prefix', '-s', default=os.getenv('NTM_METRIC_PREFIX', 'ntm'),
         help='Metric prefix (group) for Prometheus')
     parser.add_argument('--fqdn', '-f', action='store_true',
@@ -132,5 +134,5 @@ if __name__ == '__main__':
     packets = Counter(f'{opts.metric_prefix}_packets', 'Packets transferred', metric_labels)
     throughput = Counter(f'{opts.metric_prefix}_bytes', 'Bytes transferred', metric_labels)
 
-    start_http_server(int(opts.port))
+    start_http_server(addr=opts.bind_ip, port=int(opts.port))
     asyncio.run(stream_packets())
