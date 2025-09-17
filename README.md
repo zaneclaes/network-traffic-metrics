@@ -47,16 +47,18 @@ There are two Docker images provided:
 
 Choose the latter if running on a Raspberry Pi.
 
-### Docker-compose
+### Docker compose
 
-There is a `docker-compose.yml` file that integrates network-traffic-metrics with Pormetheus and Grafana in a single file. Before running it, change the following parameters:
+First, copy `env.example` to `.env`. This way you can use `git` to pull in changes without having a conflict in your `.env` file.  Edit the `.env` file to include the correct NIC, destination, source and local IP.
+
+There is a `compose.yml` file that integrates network-traffic-metrics with Pormetheus and Grafana in a single file. Before running it, change the following parameters:
 * image monitor. By default `inzania/network-traffic-metrics:latest`, you can change to `inzania/network-traffic-metrics:arm` on ARM devices (for example Raspberry pi)
 * `NTM_INTERFACE` variable must contain the name of the network interface that you want to monitor
 * `NTM_FILTERS` variable must contain the filter you want to apply.
 * `"monitor:192.168.1.110"` must contain the ip of `NTM_INTERFACE`
 
 Once you have changed those variables, you can run the whole stack running:
-> sudo docker-compose up
+> sudo docker compose up
 
 ### Kubernetes
 
