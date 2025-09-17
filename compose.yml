@@ -1,6 +1,6 @@
-version: '3.8'
 services:
   monitor:
+    restart: always
     image: inzania/network-traffic-metrics:latest
     network_mode: host
     environment:
@@ -8,6 +8,7 @@ services:
       - "NTM_FILTERS=$NTM_FILTERS"
 
   prometheus:
+    restart: always
     image: prom/prometheus:main
     ports:
       - 9090:9090
@@ -20,6 +21,7 @@ services:
 
 
   grafana:
+    restart: always
     image: grafana/grafana:6.6.2
     ports:
       - 3000:3000
