@@ -18,6 +18,11 @@ Read the [website](https://www.technicallywizardry.com/traffic-monitoring-softwa
 
 The device which runs this code must have a network interface across which the traffic flows. For monitoring traffic between the internal network and the internet, this usually means a bridged network interface. For example, a Raspberry Pi that bridges the LAN (`eth0`) traffic to the WAN (`eth1`). See the [documentation](https://www.technicallywizardry.com/traffic-monitoring-software-grafana) for more help setting this up. That said, this will work for any network interface you wish to monitor.
 
+## Important Notes
+--
+
+* Metrics are exposed via Prometheus Client, which runs as a server bound on the default `0.0.0.0`. This means that if you do not have a firewall (_you probably do, or else you should definitely fix that_) your metrics might be exposed to the public.
+
 ## Installation
 ---
 
