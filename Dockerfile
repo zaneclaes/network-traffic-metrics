@@ -1,4 +1,4 @@
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 
 MAINTAINER Zane Claes <zane@technicallywizardry.com>
 
